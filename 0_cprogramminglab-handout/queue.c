@@ -9,8 +9,7 @@
  * Developed for courses 15-213/18-213/15-513 by R. E. Bryant, 2017
  * Extended to store strings, 2018
  *
- * TODO: fill in your name and Andrew ID
- * @author XXX <XXX@andrew.cmu.edu>
+ * @author ywmei
  */
 
 #include "queue.h"
@@ -25,8 +24,12 @@
  */
 queue_t *queue_new(void) {
     queue_t *q = malloc(sizeof(queue_t));
-    /* What if malloc returned NULL? */
-    q->head = NULL;
+    /*if malloc returned NULL (failed), return NULL */
+    if (q) {
+        q->head = NULL;
+        q->tail = NULL;
+        q->size = 0;
+    }
     return q;
 }
 
@@ -36,6 +39,15 @@ queue_t *queue_new(void) {
  */
 void queue_free(queue_t *q) {
     /* How about freeing the list elements and the strings? */
+    if (q) {
+        list_ele_t *curr = q->head;
+        while (curr) {
+            q->head = q->head->next;
+            free(curr->value); // free string by free the staring char ptr
+            free(curr);
+            curr = q->head;
+        }
+    }
     /* Free queue structure */
     free(q);
 }
@@ -53,13 +65,27 @@ void queue_free(queue_t *q) {
  * @return false if q is NULL, or memory allocation failed
  */
 bool queue_insert_head(queue_t *q, const char *s) {
-    list_ele_t *newh;
-    /* What should you do if the q is NULL? */
-    newh = malloc(sizeof(list_ele_t));
+    /* if q is NULL, return false*/
+    if (!q)
+        return false;
+    list_ele_t *newh = malloc(sizeof(list_ele_t));
+    /* if the memory allocation failed, return false*/
+    if (!newh)
+        return false;
     /* Don't forget to allocate space for the string and copy it */
+    char *deepCopyString = malloc(sizeof(char) * (strlen(s) + 1));
+    if (!deepCopyString) {
+        free(newh);
+        return false;
+    }
+    strcpy(deepCopyString, s);
     /* What if either call to malloc returns NULL? */
+    newh->value = deepCopyString;
     newh->next = q->head;
     q->head = newh;
+    if (!q->tail)
+        q->tail = q->head; // if q's size if 1, head and tail are the same;
+    (q->size)++;
     return true;
 }
 
@@ -78,9 +104,37 @@ bool queue_insert_head(queue_t *q, const char *s) {
 bool queue_insert_tail(queue_t *q, const char *s) {
     /* You need to write the complete code for this function */
     /* Remember: It should operate in O(1) time */
-    return false;
+    /* if q is NULL, return false*/
+    if (!q)
+        return false;
+    list_ele_t *newh = malloc(sizeof(list_ele_t));
+    /* if the memory allocation failed, return false*/
+    if (!newh)
+        return false;
+    /* Don't forget to allocate space for the string and copy it */
+    char *deepCopyString = malloc(sizeof(char) * (strlen(s) + 1));
+    if (!deepCopyString) {
+        free(newh);
+        return false;
+    }
+    strcpy(deepCopyString, s);
+    /* What if either call to malloc returns NULL? */
+    newh->value = deepCopyString;
+    newh->next = NULL;
+    if (!q->head) {
+        q->head = newh;
+        q->tail = newh;
+    } else {
+        q->tail->next = newh;
+        q->tail = newh;
+    }
+    (q->size)++;
+    return true;
 }
 
+size_t min(size_t a, size_t b) {
+    return (a > b) ? b : a;
+}
 /**
  * @brief Attempts to remove an element from head of a queue
  *
@@ -100,7 +154,19 @@ bool queue_insert_tail(queue_t *q, const char *s) {
  */
 bool queue_remove_head(queue_t *q, char *buf, size_t bufsize) {
     /* You need to fix up this code. */
+    if (!q || !q->head)
+        return false;
+    list_ele_t *oldhead = q->head;
+    if (buf) {
+        // if `buf` is non-NULL, copy all chars to buf up to bufsize -1
+        size_t n = min(strlen(q->head->value), bufsize - 1);
+        strncpy(buf, q->head->value, n);
+        buf[n] = '\0';
+    }
     q->head = q->head->next;
+    (q->size)--;
+    free(oldhead->value);
+    free(oldhead);
     return true;
 }
 
@@ -117,7 +183,9 @@ bool queue_remove_head(queue_t *q, char *buf, size_t bufsize) {
 size_t queue_size(queue_t *q) {
     /* You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
-    return 0;
+    if (!q || !q->head)
+        return 0;
+    return q->size;
 }
 
 /**
@@ -131,4 +199,16 @@ size_t queue_size(queue_t *q) {
  */
 void queue_reverse(queue_t *q) {
     /* You need to write the code for this function */
+    if (!q || !q->head)
+        return;
+    list_ele_t *prev = NULL;
+    list_ele_t *curr = q->head;
+    q->tail = curr;
+    while (curr) {
+        list_ele_t *next = curr->next;
+        curr->next = prev;
+        prev = curr;
+        curr = next;
+    }
+    q->head = prev;
 }
