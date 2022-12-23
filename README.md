@@ -8,3 +8,8 @@ This repo is my implementation of CMU-15-213
 * The recorded lectures are at [this site](https://scs.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID=%22b96d90ae-9871-4fae-91e2-b1627b43e25e%22&view=0&maxResults=50): 
 
 ---
+
+Lab setup Ref:
+https://github.com/XieGuochao/csapp
+https://zhuanlan.zhihu.com/p/379328928
+
